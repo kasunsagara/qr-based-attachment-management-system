@@ -1,4 +1,4 @@
-# QR-Based Attachment Management System
+# QR Based Attachment Management System
 
 A complete MERN stack application for managing machine attachments in a garment factory using unique QR codes.
 
