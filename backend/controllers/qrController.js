@@ -6,7 +6,7 @@ const AttachmentType = require('../models/AttachmentType');
 const ScanHistory = require('../models/ScanHistory');
 
 const getFrontendBaseUrl = (req) => {
-  const configuredUrl = process.env.FRONTEND_URL?.trim();
+  const configuredUrl = process.env.FRONTEND_URL?.trim() || 'https://qr-based-attachment.vercel.app';
   if (configuredUrl) {
     return configuredUrl.replace(/\/$/, '');
   }
@@ -29,7 +29,9 @@ const getFrontendBaseUrl = (req) => {
     return `${proto}://${host}`;
   }
 
-  return 'http://localhost:5173';
+  return process.env.NODE_ENV === 'production'
+    ? 'https://qr-based-attachment.vercel.app'
+    : 'http://localhost:5173';
 };
 
 /**
