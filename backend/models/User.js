@@ -44,8 +44,10 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 
 // Generate JWT token
 userSchema.methods.getSignedJwtToken = function () {
+  const expiresIn = process.env.JWT_EXPIRE || '7d';
+
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE,
+    expiresIn,
   });
 };
 
