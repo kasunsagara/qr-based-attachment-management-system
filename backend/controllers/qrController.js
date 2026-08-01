@@ -5,6 +5,33 @@ const Module = require('../models/Module');
 const AttachmentType = require('../models/AttachmentType');
 const ScanHistory = require('../models/ScanHistory');
 
+const getFrontendBaseUrl = (req) => {
+  const configuredUrl = process.env.FRONTEND_URL?.trim();
+  if (configuredUrl) {
+    return configuredUrl.replace(/\/$/, '');
+  }
+
+  const origin = req.headers.origin || req.headers.referer;
+  if (origin) {
+    try {
+      const parsedUrl = new URL(origin);
+      return `${parsedUrl.protocol}//${parsedUrl.host}`;
+    } catch (error) {
+      console.warn('Invalid origin header:', origin);
+    }
+  }
+
+  const forwardedProto = req.headers['x-forwarded-proto'];
+  const forwardedHost = req.headers['x-forwarded-host'];
+  if (forwardedProto && forwardedHost) {
+    const proto = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto;
+    const host = Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost;
+    return `${proto}://${host}`;
+  }
+
+  return 'http://localhost:5173';
+};
+
 /**
  * @desc    Generate QR code for a single attachment
  * @route   POST /api/qr/generate/:attachmentId
@@ -20,7 +47,7 @@ exports.generateQR = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Attachment not found' });
     }
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = getFrontendBaseUrl(req);
     const qrUrl = `${frontendUrl}/qr/${attachment.qrId}`;
 
     // Generate QR code as data URL
@@ -61,7 +88,7 @@ exports.generateQR = async (req, res) => {
  */
 exports.bulkGenerateQR = async (req, res) => {
   try {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = getFrontendBaseUrl(req);
 
     // Find attachments without QR images
     const attachments = await Attachment.find({
@@ -111,7 +138,7 @@ exports.bulkGenerateQR = async (req, res) => {
  */
 exports.bulkCreateAndGenerate = async (req, res) => {
   try {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = getFrontendBaseUrl(req);
     const modules = await Module.find().sort({ moduleNumber: 1 });
     const types = await AttachmentType.find().sort({ attachmentName: 1 });
 
