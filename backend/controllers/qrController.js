@@ -92,17 +92,16 @@ exports.bulkGenerateQR = async (req, res) => {
   try {
     const frontendUrl = getFrontendBaseUrl(req);
 
-    // Find attachments without QR images
-    const attachments = await Attachment.find({
-      $or: [{ qrImage: '' }, { qrImage: { $exists: false } }],
-    })
+    // Regenerate QR images for all attachments so existing QR records are refreshed
+    const attachments = await Attachment.find({})
+      .sort({ qrId: 1 })
       .populate('moduleId', 'moduleNumber')
       .populate('attachmentTypeId', 'attachmentName');
 
     if (attachments.length === 0) {
       return res.status(200).json({
         success: true,
-        message: 'All attachments already have QR codes',
+        message: 'No attachments found',
         generated: 0,
       });
     }
@@ -124,7 +123,7 @@ exports.bulkGenerateQR = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: `Generated ${generated} QR code(s)`,
+      message: `Regenerated ${generated} QR code(s)`,
       generated,
     });
   } catch (error) {
